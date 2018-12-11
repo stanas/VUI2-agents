@@ -1,42 +1,39 @@
 package cz.mendelu.vui2.agents;
 
 import cz.mendelu.vui2.agents.greenfoot.AbstractAgent;
-import cz.mendelu.vui2.agents.statetables.ReactionAgentStateTable;
-
-import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
 
 public class ReactionAgent extends AbstractAgent {
 
     /**
      * Attributes definition
      */
-    private ArrayList stateTable;
     private String movementHistory;
     String lastTurn;
     boolean cycle;
+    Integer steps;
+    Integer longerForward;
 
     /**
      * Constructor
      */
     public ReactionAgent() {
-        stateTable = defineStates();
         movementHistory = "";
         lastTurn = "RIGHT";
         cycle = false;
+        steps = 0;
+        longerForward = 0;
     }
 
     @Override
     public Action doAction(boolean wall, boolean dirty, boolean dock) {
-        printInputValues(wall, dirty, dock);
-     //   printAction("History:" + movementHistory);
-        printAction("Last turn: " + lastTurn);
 
-        if (movementHistory.length() > 1 && movementHistory.substring(0, 1).equals("D")) {
-            printAction("Reset");
+        steps++;
+
+        printInputValues(wall, dirty, dock);
+        printText("Last turn: " + lastTurn);
+
+        if (checkMovementHistoryLength(1) && checkLastActionTaken(1, "D")) {
+            printText("Reset");
             movementHistory = "";
             lastTurn = "RIGHT";
             cycle = false;
@@ -45,324 +42,214 @@ public class ReactionAgent extends AbstractAgent {
         // DIRT FIND
         if (dirty) {
             // doActionOperations("C", "CLEAN");
-            printAction("Action: CLEAN");
+            printText("Action: CLEAN");
             return Action.CLEAN;
-        }
-
-        // ON DOCK BUT NOT ENOUGH MOVEMENTS
-        if (dock && movementHistory.length() > 3) {
-            printAction("Action: TURN OF, DOCK!");
-            doActionOperations("D", "TURN OF");
+        }/* else if (dock && checkMovementHistoryLength(3)) { // ON DOCK BUT NOT ENOUGH MOVEMENTS
+            printText("Action: TURN OF, DOCK!");
+            doActionOperations("D");
             return Action.TURN_OFF;
-        }
-
-        if(!wall && cycle){
-            printAction("ACTION:: CYCLE");
-            doActionOperations("F", "FORWARD");
+        } */else if (!wall && cycle) {
+            printText("ACTION: CYCLE");
+            doActionOperations("F");
             return Action.FORWARD;
-        } else if (wall && cycle){
+        } else if (wall && cycle) {
             cycle = false;
         }
 
         // Pokud nelze dokocit FFF, podivej se na posledni otocku a otoc se opacne
-   /*     if (movementHistory.length() >= 4 && movementHistory.substring(0, 4).equals("FFLF"))  {
-            printAction("ACTION:: RFFFL");
+   /*     if (checkMovementHistoryLength(4) && checkLastActionTaken(4, "FFLF"))  {
+            printText("ACTION: RFFFL");
             doActionOperations("R", "RIGHT");
 
             return Action.TURN_RIGHT;
         }*/
         // -- MOVE ONE FORWARD
-        if (!wall && movementHistory.length() >= 5 && movementHistory.substring(0, 5).equals("LFFFR")) {
-            printAction("ACTION:: RFFF");
-            doActionOperations("F", "FORWARD");
+        if (!wall && checkMovementHistoryLength(5) && checkLastActionTaken(5, "LFFFR")) {
+            printText("ACTION: RFFF");
+            doActionOperations("F");
             return Action.FORWARD;
         }
 
         // -- MOVE ONE FORWARD
-        if (!wall && movementHistory.length() >= 5 && movementHistory.substring(0, 5).equals("RFFFL")) {
-            printAction("ACTION:: RFFFL");
-            doActionOperations("F", "FORWARD");
+        if (!wall && checkMovementHistoryLength(5) && checkLastActionTaken(5, "RFFFL")) {
+            printText("ACTION: RFFFL");
+            doActionOperations("F");
             return Action.FORWARD;
-        } else  if (movementHistory.length() >= 5 && movementHistory.substring(0, 5).equals("RFFFL"))  {
-            printAction("ACTION:: !RFFFL");
-            doActionOperations("R", "RIGHT");
+        } else if (checkMovementHistoryLength(5) && checkLastActionTaken(5, "RFFFL")) {
+            printText("ACTION: !RFFFL");
+            doActionOperations("R");
             cycle = true;
             return Action.TURN_RIGHT;
         }
 
         // -- MOVE ONE FORWARD
-        if (!wall && movementHistory.length() >= 5 && movementHistory.substring(0, 5).equals("RRFFF")) {
-            printAction("ACTION:: RFFF");
-            doActionOperations("F", "FORWARD");
+        if (!wall && checkMovementHistoryLength(5) && checkLastActionTaken(5, "RRFFF")) {
+            printText("ACTION: RFFF");
+            doActionOperations("F");
             return Action.FORWARD;// pro fungování nahradit otočkou
         }
 
         // START UP RIGHT SEQUENCE
         // -- TURN RIGHT
-        if (movementHistory.length() >= 4 && movementHistory.substring(0, 4).equals("FFFL")) {
-            printAction("ACTION:: FFFL");
-            doActionOperations("R", "RIGHT");
+        if (checkMovementHistoryLength(4) && checkLastActionTaken(4, "FFFL")) {
+            printText("ACTION: FFFL");
+            doActionOperations("R");
             return Action.TURN_RIGHT;
         }
 
         // -- MOVE ONE FORWARD
-        if (!wall && movementHistory.length() >= 4 && movementHistory.substring(0, 4).equals("RFFF")) {
-            printAction("ACTION:: RFFF");
-            doActionOperations("F", "FORWARD");
+        if (!wall && checkMovementHistoryLength(4) && checkLastActionTaken(4, "RFFF")) {
+            printText("ACTION: RFFF");
+            doActionOperations("F");
             return Action.FORWARD;
         }
 
         // -- TURN SECOND RIGHT UP
-        if (movementHistory.length() >= 4 && movementHistory.substring(0, 4).equals("FRFF")) {
-            printAction("ACTION:: RFFF");
-            doActionOperations("R", "RIGHT");
+        if (checkMovementHistoryLength(4) && checkLastActionTaken(4, "FRFF")) {
+            printText("ACTION: RFFF");
+            doActionOperations("R");
             return Action.TURN_RIGHT;
         }
 
         // -- FORWARD UP
-        if (!wall && movementHistory.length() >= 4 && movementHistory.substring(0, 4).equals("RFRF")) {
-            printAction("ACTION:: RFFF");
-            doActionOperations("F", "FORWARD");
+        if (!wall && checkMovementHistoryLength(4) && checkLastActionTaken(4, "RFRF")) {
+            printText("ACTION: RFFF");
+            doActionOperations("F");
             return Action.FORWARD;
         }
 
         // START DOWN LEFT SEQUENCE FROM RIGHT UP SEQUENCE
         // -- TURN FIRST LEFT
-        if (!wall && movementHistory.length() >= 4 && movementHistory.substring(0, 4).equals("FFFR")) {
-            printAction("ACTION:: FFFR");
-            doActionOperations("L", "LEFT");
+        if (!wall && checkMovementHistoryLength(4) && checkLastActionTaken(4, "FFFR")) {
+            printText("ACTION: FFFR");
+            doActionOperations("L");
             return Action.TURN_LEFT;
         }
 
         // -- MOVE ONE FORWARD
-        if (!wall && movementHistory.length() >= 4 && movementHistory.substring(0, 4).equals("LFFF")) {
-            printAction("ACTION:: LFFF");
-            doActionOperations("F", "FORWARD");
+        if (!wall && checkMovementHistoryLength(4) && checkLastActionTaken(4, "LFFF")) {
+            printText("ACTION: LFFF");
+            doActionOperations("F");
             return Action.FORWARD;
         }
 
         // -- TURN SECOND LEFT DOWN
-        if (movementHistory.length() >= 4 && movementHistory.substring(0, 4).equals("FLFF")) {
-            printAction("ACTION:: FLFF");
-            doActionOperations("L", "LEFT");
+        if (checkMovementHistoryLength(4) && checkLastActionTaken(4, "FLFF")) {
+            printText("ACTION: FLFF");
+            doActionOperations("L");
             return Action.TURN_LEFT;
         }
 
         // -- FORWARD DOWN
-        if (!wall && movementHistory.length() >= 4 && movementHistory.substring(0, 4).equals("LFLF")) {
-            printAction("ACTION:: LFLF");
-            doActionOperations("F", "FORWARD");
+        if (!wall && checkMovementHistoryLength(4) && checkLastActionTaken(4, "LFLF")) {
+            printText("ACTION: LFLF");
+            doActionOperations("F");
             return Action.FORWARD;
         }
 
-
-
 /*
-        if (movementHistory.length() >= 4 && movementHistory.substring(0, 3) == "FFFF"){
+        if (checkMovementHistoryLength(4) && checkLastActionTaken(3) == "FFFF"){
             doActionOperations("L", "LEFT");
             return Action.TURN_LEFT;
-        }*/
-        //  if(movementHistory.length() > 3) printAction(movementHistory.substring(0,3));
+        }
+*/
 
-        if (movementHistory.length() > 3 && movementHistory.substring(0, 3).equals("RLR")) {
-            printAction("CYCLE");
+        if (checkMovementHistoryLength(3) && checkLastActionTaken(3, "RLR")) {
+            printText("CYCLE");
 
             lastTurn = "RIGHT";
-            doActionOperations("R", "RIGHT");
+            doActionOperations("R");
             return Action.TURN_RIGHT;
         }
 
-        if (movementHistory.length() > 3 && movementHistory.substring(0, 3).equals("LRL")) {
-            printAction("CYCLE");
+        if (checkMovementHistoryLength(3) && checkLastActionTaken(3, "LRL")) {
+            printText("CYCLE");
 
-            doActionOperations("L", "LEFT");
+            doActionOperations("L");
             lastTurn = "LEFT";
             return Action.TURN_LEFT;
         }
 
         if (wall) {
-            printAction("NORMAL WALL");
+            printText("NORMAL WALL");
             switch (lastTurn) {
                 case "LEFT": {
-                    doActionOperations("R", "RIGHT");
+                    doActionOperations("R");
                     lastTurn = "RIGHT";
                     return Action.TURN_RIGHT;
                 }
                 case "RIGHT": {
                     lastTurn = "LEFT";
-                    doActionOperations("L", "LEFT");
+                    doActionOperations("L");
                     return Action.TURN_LEFT;
                 }
                 default: {
                     lastTurn = "LEFT";
-                    doActionOperations("L", "LEFT");
+                    doActionOperations("L");
                     return Action.TURN_LEFT;
                 }
             }
         }
 
-        if (!wall && movementHistory.length() >= 3 && movementHistory.substring(0, 3).equals("FFF")) {
-            printAction("xxF");
-
-            doActionOperations("F", "FORWARD");
+        /*if (!wall && checkMovementHistoryLength(3) && checkLastActionTaken(3, "FFF") && longerForward <= 2) {
+            printText("Longer Forward: " + longerForward);
+            longerForward++;
+            doActionOperations("F");
             return Action.FORWARD;
-        }else if (movementHistory.length() >= 3 && movementHistory.substring(0, 3).equals("FFF")) {
-            printAction("3xF");
+        } else */if (checkMovementHistoryLength(3) && checkLastActionTaken(3, "FFF")) {
+            //  if (longerForward != 0) longerForward = 0;
+            // printText("Longer Forward: " + longerForward);
             lastTurn = "LEFT";
-            doActionOperations("L", "LEFT");
+            doActionOperations("L");
             return Action.TURN_LEFT;
         }
 
         if (!wall) {
-            printAction("Action: CLASSIC FORWARD ");
-            doActionOperations("F", "FORWARD");
+            longerForward = 0;
+            printText("Action: CLASSIC FORWARD: " + longerForward);
+            doActionOperations("F");
             return Action.FORWARD;
         }
-
-
-
-
-       /* if(wall){
-            doActionOperations("L", "TURN_RIGHT");
-            return Action.TURN_LEFT;
-        } else if(wall && !lastTurn){
-            lastTurn = true;
-            movementHistory = addNewMovement(movementHistory, "R");
-            printAction("R");
-            return Action.TURN_RIGHT;
-        }*/
-/*
-        switch (movementHistory) {
-            case "F": {
-                movementHistory = addNewMovement(movementHistory, "L");
-                return Action.TURN_LEFT;
-            }
-            case "FF": {
-                movementHistory = addNewMovement(movementHistory, "L");
-                return Action.TURN_LEFT;
-            }
-            case "LF": {
-                if (wall) {
-                    movementHistory = addNewMovement(movementHistory, "R");
-                    return Action.TURN_RIGHT;
-                } else {
-                    movementHistory = addNewMovement(movementHistory, "F");
-                    return Action.FORWARD;
-                }
-            }
-            case "FFF": {
-                movementHistory = addNewMovement(movementHistory, "L");
-                return Action.TURN_LEFT;
-            }
-            case "LFF": {
-                if (wall) {
-                    movementHistory = addNewMovement(movementHistory, "L");
-                    return Action.TURN_LEFT;
-                } else {
-                    movementHistory = addNewMovement(movementHistory, "F");
-                    return Action.FORWARD;
-                }
-            }
-            case "FLF": {
-                movementHistory = addNewMovement(movementHistory, "L");
-                return Action.TURN_LEFT;
-            }
-            case "LFL": {
-                if (wall) {
-                    movementHistory = addNewMovement(movementHistory, "R");
-                    return Action.TURN_RIGHT;
-                } else {
-                    movementHistory = addNewMovement(movementHistory, "F");
-                    return Action.FORWARD;
-                }
-            }
-
-        }
-*/
-
-     /*   Iterator iterator = stateTable.iterator();
-        while (iterator.hasNext()) {
-            ReactionAgentStateTable state = (ReactionAgentStateTable) iterator.next();
-            if (state.wall == wall && state.dirty == dirty && state.dock == dock) {
-                System.out.println(state.action);
-                if (movementHistory.length() == 3) {
-                    movementHistory = addNewMovement(movementHistory, state.actionCode);
-                } else {
-                    movementHistory = state.actionCode + movementHistory;
-                }
-
-                System.out.println("Movement: " + movementHistory + " - " + movementHistory.length());
-
-                return state.action;
-
-            }
-
-        }
-*/
 
         return null;
     }
 
-    private void doActionOperations(String newAction, String message) {
-        movementHistory = addNewMovement(movementHistory, newAction);
-        printAction("HISTORY: " + movementHistory);
-        printAction(message);
-    }
-
     /**
-     * Define basic states
+     * Check movement history length.
      *
-     * @return stateTable ArrayList
+     * @param length Integer Length to check.
+     * @return boolean
      */
-    private ArrayList<ReactionAgentStateTable> defineStates() {
-
-        ArrayList<ReactionAgentStateTable> stateTable = new ArrayList<>();
-
-        stateTable.add(new ReactionAgentStateTable(false, false, false, Action.FORWARD, "", "F"));
-        stateTable.add(new ReactionAgentStateTable(false, false, true, Action.TURN_RIGHT, "", "R"));
-        stateTable.add(new ReactionAgentStateTable(false, true, false, Action.CLEAN, "", "C"));
-        stateTable.add(new ReactionAgentStateTable(false, true, true, Action.CLEAN, "", "C"));
-        stateTable.add(new ReactionAgentStateTable(true, false, false, Action.TURN_RIGHT, "", "R"));
-        stateTable.add(new ReactionAgentStateTable(true, false, true, Action.TURN_LEFT, "", "L"));
-        stateTable.add(new ReactionAgentStateTable(true, true, false, Action.CLEAN, "", "C"));
-        stateTable.add(new ReactionAgentStateTable(true, true, true, Action.CLEAN, "", "C"));
-
-        return stateTable;
-    }
-
-    private Map<String, Action> defineAction() {
-        Map<String, Action> actionHashMap = new HashMap<String, Action>();
-        actionHashMap.put("F", Action.TURN_LEFT);
-        actionHashMap.put("FF", Action.TURN_LEFT);
-        actionHashMap.put("FFF", Action.TURN_LEFT);
-        actionHashMap.put("FF", Action.TURN_LEFT);
-        actionHashMap.put("FFF", Action.TURN_LEFT);
-        actionHashMap.put("FFF", Action.TURN_LEFT);
-        actionHashMap.put("FFF", Action.TURN_LEFT);
-        actionHashMap.put("FFF", Action.TURN_LEFT);
-        actionHashMap.put("FFF", Action.TURN_LEFT);
-
-
-        return actionHashMap;
+    private boolean checkMovementHistoryLength(Integer length) {
+        return movementHistory.length() >= length;
     }
 
     /**
-     * @param movementHistory
-     * @param newAction
+     * @param lastPosition
+     * @param actionsTaken
      * @return
      */
-    private String addNewMovement(String movementHistory, String newAction) {
-     /*   printAction("F");
-        switch (newAction){
-            case "F" : printAction("FORWARD"); break;
-            case "L" : printAction("TURN LEFT"); break;
-            case "R" : printAction("TURN RIGHT"); break;
-            case "C" : printAction("CLEAN"); break;
-            case "D" : printAction("DOCK"); break;
-        }*/
+    private boolean checkLastActionTaken(Integer lastPosition, String actionsTaken) {
+        return movementHistory.substring(0, lastPosition).equals(actionsTaken);
+    }
 
-        // if (movementHistory.length() < 3) return newAction + movementHistory;
+    /**
+     * Performing accompanying operations for each action.
+     *
+     * @param newAction Char Acronym for new action.
+     */
+    private void doActionOperations(String newAction) {
+        addNewMovement(newAction);
+        printText("HISTORY: " + movementHistory);
+        printText("NEW: " + newAction);
+    }
 
+    /**
+     * Add new movement to movement history.
+     *
+     * @param newAction Char Acronym for new action.
+     */
+    private void addNewMovement(String newAction) {
         String updatedMovementHistory = newAction;
 
         for (int i = 0; i < movementHistory.length(); i++) {
@@ -370,23 +257,27 @@ public class ReactionAgent extends AbstractAgent {
             updatedMovementHistory = updatedMovementHistory + c;
         }
 
-        return updatedMovementHistory;
+        movementHistory = updatedMovementHistory;
     }
 
     /**
      * Print actual input values.
      *
-     * @param wall  boolean
-     * @param dirty boolean
-     * @param dock  boolean
+     * @param wall  boolean Wall in front of the vacuum cleaner.
+     * @param dirty boolean Dirt on the floor.
+     * @param dock  boolean Vacuum cleaner is in dock.
      */
     private void printInputValues(boolean wall, boolean dirty, boolean dock) {
         System.out.println("------------------------------------------------");
         System.out.println("Wall: " + wall + "-- Dirty: " + dirty + "-- Dock: " + dock);
     }
 
-    private void printAction(String action) {
-        System.out.println(action);
+    /**
+     * Print control text.
+     *
+     * @param text String Text to be printed out.
+     */
+    private void printText(String text) {
+        System.out.println(text);
     }
-
 }
