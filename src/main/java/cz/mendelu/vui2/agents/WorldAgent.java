@@ -67,14 +67,13 @@ public class WorldAgent extends AbstractAgent {
         if (this.maxTurningStep <= reactionAgent.getSteps()) this.backToDock = true;
 
         // Check if movementHistory is locally saved.
-        if (!this.movementHistorySaved && backToDock) {
+        if (!this.movementHistorySaved && this.backToDock) {
             this.movementHistory = reactionAgent.getMovementHistory();
             this.movementHistorySaved = true;
         }
 
         // Back to dock - else continue
-        if (backToDock) {
-
+        if (this.backToDock) {
             // When all actions taken, turn off.
             if (this.movementHistory.length() == 0) return Action.TURN_OFF;
 

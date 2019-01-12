@@ -250,7 +250,6 @@ public class ReactionAgent extends AbstractAgent {
      */
     private Action doActionOperations(String newAction) {
         addNewMovement(newAction);
-        printText("HISTORY: " + movementHistory);
         switch (newAction) {
             case "F":
                 return Action.FORWARD;
